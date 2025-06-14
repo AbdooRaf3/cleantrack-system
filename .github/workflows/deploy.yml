@@ -33,10 +33,15 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: '/cleantrack-system'
           NODE_ENV: 'production'
           NEXT_TELEMETRY_DISABLED: 1
+          NEXT_EXPORT: 'true'
 
       - name: List build output
         run: |
           ls -la out/
+
+      - name: Create 404.html
+        run: |
+          cp out/404/index.html out/404.html
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
