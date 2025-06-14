@@ -19,19 +19,20 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'yarn'
+          cache: 'npm'
 
       - name: Install dependencies
         run: |
-          yarn config set network-timeout 300000
-          yarn install --verbose
+          npm install --legacy-peer-deps
+          npm list
 
       - name: Build
         run: |
-          yarn build
+          npm run build
         env:
           NEXT_PUBLIC_BASE_PATH: '/cleantrack-system'
           NODE_ENV: 'production'
+          NEXT_TELEMETRY_DISABLED: 1
 
       - name: List build output
         run: |
