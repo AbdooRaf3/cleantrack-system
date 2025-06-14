@@ -22,12 +22,20 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn install
+        run: |
+          yarn config set network-timeout 300000
+          yarn install --verbose
 
       - name: Build
-        run: yarn build
+        run: |
+          yarn build
         env:
           NEXT_PUBLIC_BASE_PATH: '/cleantrack-system'
+          NODE_ENV: 'production'
+
+      - name: List build output
+        run: |
+          ls -la out/
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
