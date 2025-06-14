@@ -6,50 +6,41 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
-
+          node-version: "20"
+          cache: 'yarn'
       - name: Install dependencies
-        run: |
-          npm install --legacy-peer-deps
-          npm list
-
-      - name: Build
-        run: |
-          npm run build
-        env:
-          NEXT_PUBLIC_BASE_PATH: '/cleantrack-system'
-          NODE_ENV: 'production'
-          NEXT_TELEMETRY_DISABLED: 1
-          NEXT_EXPORT: 'true'
-          # Supabase environment variables
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-
-      - name: List build output
-        run: |
-          ls -la out/
-
-      - name: Create 404.html
-        run: |
-          cp out/404/index.html out/404.html
-
-      - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4
+        run: yarn install
+      - name: Build with Next.js
+        run: yarn build
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          folder: out
-          branch: gh-pages
-          clean: true 
+          path: ./out
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 
